@@ -1,0 +1,22 @@
+<div class='search_form'>
+  <%= form_for @ys do |form| %>
+    <table>
+      <tr>
+        <td>Search terms:</td>
+        <td><%= form.text_field :search_terms %></td>
+        <td>
+          <%= button_tag type: 'submit', class: 'btn' do %>
+            <span class='glyphicon glyphicon-search'></span>
+          <% end %>
+          <% unless @ys.new_record? %>
+            <%= link_to "Set Alert for this Search", '', class: 'btn btn-default' %>
+          <% end %>
+        </td>
+      </tr>
+    </table>
+  <% end %>
+
+  <% unless @ys.new_record? %>
+    <%= render 'results' %>
+  <% end %>
+</div>

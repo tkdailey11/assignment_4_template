@@ -1,0 +1,34 @@
+# == Schema Information
+#
+# Table name: videos
+#
+#  id                :integer          not null, primary key
+#  title             :string
+#  url               :string
+#  view_count        :integer
+#  comment_count     :integer
+#  youtube_search_id :integer
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  like_count        :integer
+#  dislike_count     :integer
+#  favorite_count    :integer
+#  channel_name      :string
+#  youtube_id        :string
+#  published_at      :date
+#  thumbnail_url     :string
+#
+
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  url: MyString
+  view_count: 1
+  comment_count: 1
+
+two:
+  title: MyString
+  url: MyString
+  view_count: 1
+  comment_count: 1

@@ -1,0 +1,12 @@
+<div class="nice-box">
+  <div class="header">System Activity</div>
+  <div class="contents">
+      <table class="table">
+        <% Audit.auto_search.most_recent(10).each do |audit| %>
+          <tr>
+            <td><%= audit.created_at %></td>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+</div>

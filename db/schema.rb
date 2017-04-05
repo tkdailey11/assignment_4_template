@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170320190502) do
+ActiveRecord::Schema.define(version: 20170405203021) do
 
   create_table "alerts", force: :cascade do |t|
-    t.integer  "user_id"
     t.integer  "status"
     t.datetime "delivered_at"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
+    t.integer  "user_id"
   end
 
   create_table "audits", force: :cascade do |t|
@@ -27,6 +27,15 @@ ActiveRecord::Schema.define(version: 20170320190502) do
     t.integer  "severity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "executed_searches", force: :cascade do |t|
+    t.integer  "youtube_search_id"
+    t.integer  "triggered_by"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
   end
 
   create_table "user_signups", force: :cascade do |t|

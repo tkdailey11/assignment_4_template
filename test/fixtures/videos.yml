@@ -21,6 +21,30 @@
 
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+<% VIDEO_COUNT = 20 %>
+
+# one video set
+<% 1.upto(VIDEO_COUNT) do |i| %>
+video_set_a_<%= i %>:
+  executed_search: set_a
+  title: Video Number <%= i %>
+  url: a_url
+  view_count: <%= rand(100) %>
+  comment_count: <%= rand(100) %>
+  youtube_id: set_a<%= i %>
+<% end %>
+
+# second video set
+<% 1.upto(VIDEO_COUNT) do |i| %>
+video_set_b_<%= i %>:
+  executed_search: set_b
+  title: Video Number <%= i %>
+  url: a_url
+  view_count: <%= rand(100) %>
+  comment_count: <%= rand(100) %>
+  youtube_id: set_b<%= i %>
+<% end %>
+
 one:
   title: MyString
   url: MyString

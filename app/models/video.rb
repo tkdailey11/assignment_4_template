@@ -21,7 +21,9 @@
 
 # represents a video that exists on Youtube
 class Video < ApplicationRecord
-  belongs_to :youtube_search
+  # TODO:  refactor to associate this model with one executed search object,
+  # instead of a youtube_search_object.  This involves both changing the
+  # table schema and adding the correct association declaration here.
 
   validates :title, presence: true
   validates :view_count, presence: true

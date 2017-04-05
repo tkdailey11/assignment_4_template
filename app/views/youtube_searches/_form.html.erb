@@ -5,18 +5,23 @@
         <td>Search terms:</td>
         <td><%= form.text_field :search_terms %></td>
         <td>
-          <%= button_tag type: 'submit', class: 'btn' do %>
-            <span class='glyphicon glyphicon-search'></span>
-          <% end %>
-          <% unless @ys.new_record? %>
-            <%= link_to "Set Alert for this Search", '', class: 'btn btn-default' %>
-          <% end %>
+      </tr>
+      <tr>
+        <td>Alert on New Result?:</td>
+        <td><%= form.check_box :alert_on_new_result %></td>
+        <td>
+      </tr>
+      <tr>
+        <td colspan='3'>
+          <%= form.submit 'Save', class: 'btn btn-default' %>
+          <%= form.submit 'Save and Run', class: 'btn btn-default' %>
+          <%= link_to 'Cancel', root_path, class: 'btn btn-default' %>
         </td>
       </tr>
     </table>
   <% end %>
-
-  <% unless @ys.new_record? %>
-    <%= render 'results' %>
-  <% end %>
 </div>
+
+<% if @include_results %>
+  <%= render 'executed_searches/results' %>
+<% end %>

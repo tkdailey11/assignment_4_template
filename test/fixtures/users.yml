@@ -10,7 +10,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  txt_number      :string
-#  verified        :boolean          default("f")
+#  verified        :boolean          default(FALSE)
 #  password_digest :string
 #
 # Indexes

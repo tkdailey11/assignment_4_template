@@ -13,48 +13,67 @@
 # A class to manage the searching of Youtube and creation
 # of objects to store the results.
 class YoutubeSearch < ApplicationRecord
+  # TODO:  Add a boolean attribute named alert_on_new_result
+
   belongs_to :user
-  has_many :videos
+  has_many :executed_searches
+  has_many :alerts
 
   scope :most_recent, ->(n) { order('youtube_searches.created_at desc').limit(n) }
+
+  # TODO:  Add a named scope here to return the youtube_search objects that
+  # have their alert_on_new_result attribute == true
 
   validates :search_terms, presence: true
 
   MAX_RESULTS = 30
 
-  # do the search and the saving of associated video objects *after* saving
-  # this object because the parent object of a has_many relationship must
-  # be saved before any of the associated objects (which makes sense because
-  # you need the foreign_key to make the link, and if the parent object
-  # doesn't have an ID yet, there's no way to set that foreign key field).
-  after_save :search
+  before_save :set_defaults
+
+  def self.run_batch!
+    YoutubeSearch.with_alerting.each do |search|
+      search.execute!(false)  # false means this is not an ad hoc query
+      search.check_for_alert_state
+    end
+    Alert.deliver!
+  end
+
+  def execute!( is_ad_hoc: true )
+    # create a linked instance of an executed search to record that
+    # this search is being, um, executed
+    es = executed_searches.create( is_ad_hoc: is_ad_hoc )
+    es.run
+  end
+
+  def check_for_alert_state
+    # first look for a prior run of this search...btw we don't care
+    # if that prior run was ad hoc or scheduled.
+    #
+    # the just-run search results will be the first ExecutedSearch object
+    # in the has_many relationship, and the one we want to compare it against
+    # will be the second one (if it exists)
+
+    # do we have a prior search?
+    return false if self.executed_searches.count == 1
+
+    current_results = self.executed_searches.first
+    prior_results   = self.executed_searches.second
+
+    # are the two result sets different?
+    delta = current_results.compare_to(prior_results)
+    if delta.count > 0
+      # yep!  setup alarms for the different videos
+      delta.each do |video|
+        # the default attributes for an Alert object set it
+        # as generated, not delivered.  We'll deliver later.
+        self.alerts.create(message: video.title + ' ' + video.url)
+      end
+    end
+  end
 
   private
 
-  def search
-    # remove any currently associated videos
-    self.videos.delete_all
-
-    results = Yt::Collections::Videos.new.where(q: youtube_search.search_terms, order: 'viewCount', safe_search: 'strict').first(YoutubeSearch::MAX_RESULTS)
-    results.each do |v|
-      # has_many.create will instantiate a new object associated with this one via
-      # the foreign key and save it -- see the Rails API documents for has_many
-      new_video = self.videos.create(
-        title: v.title,
-        comment_count: v.comment_count || 0,
-        view_count: v.view_count || 0,
-        like_count: v.like_count || 0,
-        dislike_count: v.dislike_count || 0,
-        channel_name: v.channel_title,
-        published_at: v.published_at,
-        youtube_id: v.id,
-        url: v.embed_html,
-        thumbnail_url: v.thumbnail_url)
-      if new_video
-        Rails.logger.info("Successfully created a video from search: #{new_video.inspect}")
-      else
-        Rails.logger.error("Unable to save a video result: #{new_video.errors.full_messages}")
-      end
-    end
+  def set_defaults
+    self.name ||= search_terms.truncate(25, separator: ' ')
   end
 end

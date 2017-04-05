@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :executed_searches
   resources :users
   resources :youtube_searches
   resources :videos

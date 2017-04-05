@@ -1,3 +1,23 @@
+# == Schema Information
+#
+# Table name: users
+#
+#  id              :integer          not null, primary key
+#  first_name      :string
+#  last_name       :string
+#  email           :string
+#  admin           :boolean
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  txt_number      :string
+#  verified        :boolean          default(FALSE)
+#  password_digest :string
+#
+# Indexes
+#
+#  index_users_on_email  (email) UNIQUE
+#
+
 require 'test_helper'
 
 class UsersControllerTest < ActionDispatch::IntegrationTest

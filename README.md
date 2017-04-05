@@ -1,21 +1,22 @@
-# Assignment 3
+# Assignment 4
 
 ## Overview
 
-In this assignment, you will write code to issue a search against YouTube using
-the Google Youtube Data API.  You'll save the results of that query as Video objects
-and you'll save the search itself as a YoutubeSearch object.  This will prepare
-the path for setting alerts on our next assignment.  You'll also finalize user
-credentialling and authorization within the application.
+In this assignment, you will refactor your Assignment 3 code to
+1)  allow users to set alerts on their searches
+2)  automatically execute those searches on a schedule, and
+3)  recognize when new results of a search have occurred.
+
+This assignment is due by midnight on Sunday, April 16th via the same pull request method as other assignments.
+
 
 ## Requirements
 
-Pass all the tests and <del>satisfy all the Rubocop checks.</del>  Nope.  Forget
-rubocop for this assignment.  You still need to pass the rails tests though.
-You can run the tests with 'rails test' from the home directory.
+Pass all the tests.  (No rubocop again.)  You can run the tests with 'rails test'
+from the home directory.
 
-Each failed test deducts 5 points.  There are 29 test blocks consisting of
-72 assertions.  **I make no distinction between failures, errors, and skips.**
+Each failed test deducts 5 points.  There are 43 test blocks consisting of
+113 assertions.  **I make no distinction between failures, errors, and skips.**
 Your score will equal: 100 - ((count(failures) + count(errors) + count(skips)) * 5).
 
 To help get you started, I've marked several areas in the project with # TODO
@@ -24,135 +25,80 @@ tags that point out functionality you need to add to pass the tests.
 
 ## Overview:
 
-### Query the Google Youtube Data API
+## Create the ExecutedSearch Model
 
-You need two things to talk to the Youtube API programmatically -- you must
-establish a "project" within your Google account via the developers' console
-and you must generate an API key that you'll pass along with your requests.
-Both of these tasks are covered in the README for the Yt gem and via the
-video link below.  You'll also have to enable the Youtube Data API service in
-your project.  In general, here's what you need to do:
+Remember the entity relationship diagram we went over in class?  Much of this assignment involves refactoring our existing models to fit that new schema.  The ExecutedSearch entity is a completely new entity/model, and there's a fair amount to it.  We're using this new model as a way of recording the results of youtube queries so we can compare them over time.  It's how we'll identify that we have an alert state.
 
-1.  Login to your google account and visit the Google Developers' Console (link
-  below).  
-2.  Create a project.  What you name it immaterial.
-3.  Click on the Enable API button and select Youtube Data API in the next screen.  
-4.  When you do step (3) you'll be prompted to create a set of credentials.  Select
-  API Key, not OAuth or service key.  
+I'm giving you the majority of the ExecutedSearch model.  You just need to write the
+contents of the compare_to method.  See the model file for a description of what it takes as a parameter and what it should return. In general, it needs to implement a subtractive set
+operation.  
+```
+For example, given
+  Set A : { 1, 2, 3 }
+  Set B : { 3, 4, 5 }
+then
+  comparing Set A to Set B should do A-B:
+  Set A.compare_to(Set B) => { 1, 2 }
+  and
+  Set B.compare_to(Set A) => { 4, 5 }
+```
+In our code, the Set A and Set B are ExecutedSearch objects and their elements
+are the videos associated with them through their has_many :videos relationship.  The system will call the ExecutedSearch.compare_to method on two search results.  (See youtube_search.rb for this call.)
 
-You can experiment with issuing API calls using the link to the API Explorer below.
-Note that this is a good way of verifying that your API key works.  Use the link
-for youtube.videos.list to access the search interface.  Be sure to use the link
-at the bottom of that page labeled Execute without OAuth, not the button
-labeled Authorize and execute.  
-
-Be sure to take a read through the online documentation for this api -- you'll
-want to be comfortable with knowing how to query it and what the returned values
-look like.
-
-
-### Install the Yt Gem
-
-Despite what I just said about understanding the Youtube API, we're going to use
-a Ruby library that turns that API into something much more Rails-like, Yt.  Yt
-is a gem that needs to be installed and configured in our apps.
-
-Actually, I've done most of the work for you here.  The Gemfile already has the
-yt gem added to it and the only thing you need to do is provide your API Key
-to the gem.  The way to do this is to **set an environment variable named
-YT_API_KEY to the API key you received in the prior stage**.  I've set things up
-so the Rails app will read that environment variable into Yt upon startup.  If
-you're interested, see application.rb in the /config directory.  The environment
-variable MUST be named YT_API_KEY.  You can verify you've set your environment
-correctly by running 'env' at the command prompt and finding YT_API_KEY and your
-key in the listing of environment variables.  
-
-Why are we doing this?  Because it's a secure method to pass a piece of sensitive
-data to an application without exposing it in a source code repository.  btw, if
-you ever find yourself putting a password or other sensitive information
-in a source code file, stop!  Think.  Consider an alternative approach like
-the environment variable method.  There are others -- e.g. in Amazon Web Services,
-you can spin up machines with preset boot-up variables/values your code can access.
+Remember that reading the test code itself can help you understand what
+your code needs to do.  (See test/models/executed_search_test.rb)
 
 References:
-  - [Yt Gem](https://github.com/Fullscreen/yt)
-  - [Video on Getting API Key](https://www.youtube.com/watch?v=Im69kzhpR3I)
-  - [The Google Developers Console](https://console.developers.google.com)
-  - [The Google API Explorer for Youtube](https://developers.google.com/apis-explorer/?hl=en_US#p/youtube/v3/)
-  - [The Gooogle API Explorer for Youtube Searching](https://developers.google.com/apis-explorer/?hl=en_US#p/youtube/v3/youtube.videos.list)
+  - Lecture Notes on Assignment 4, Creating the ExecutedSearch Model
 
 
-### Complete User Authentication
+### Refactor the YoutubeSearch Model
 
-- Require passwords on user accounts (most of the time).
-
-You'll need to ensure that you've included the has_secure_password directive
-in your User model.  You'll also need to add a validation that ensures the
-password exists.  But - be careful!  We want to ensure we have a password
-when we're setting up a user account the first time, but after that, we want
-to back off the presence validation so a user can update their profile without
-having to enter their password (and its confirmation) if they're only changing
-something like their name.  How would you modify the validation for password
-presence to only apply to a new user record?  (Hint:  calling new_record? on
-any ActiveRecord object will tell you if it is one...and see the Rails API
-docs on validate to explore the options available to it.)
-
-- Provide a login screen.
-
-Build a form that includes fields for email and password.  You'll want
-to use the user_session resource/model, i.e. think about a login as the
-creation of a new user_session.  So, you'll want a new.html.erb template
-in the user_sessions directory.  btw, the Hartl book uses 'session' to
-refer to what I'm calling 'user_session' -- they are the same notion, but I
-prefer user_session because it makes a bit more sense to me.  Don't let this
-confuse you as you reference Hartl.
-
-- Verify that the logging in user has correct credentials.
-
-Authentication refers to the process of ensuring that a user is who they say
-are.  We'll do this via the login screen.  You'll need to build a create
-function in the UserSessionController that will verify the user's email
-points to a user account that matches the password they provided.  
-
-- Remember the user during the session.
-
-You'll need to save the user_id to the session object and reference it
-at appropriate times.  You should have a current_user function available
-to all controllers and views that returns the currently-logged-in user.
-
-- Provide a logout link.
-
-Upon taking this like, the session object needs to "forget" about the user,
-thus requring any additional requests to redirect to the login form.
+* Add a boolean attribute called alert_on_new_result
+* Add a named scope that will return all objects that have their
+  alert_on_new_result set to true.
+* I've taken care of modifying the views to expose this new attribute
+  but you may want look at the code to see what I did.  
 
 References:
-  - Hartl, Chapter 7, all sections
-  - Harlt, Chapter 8, Sections 8.1, 8.2  (Ignore the later sections on cookies.)
+  - Lecture Notes on Assignment 4, Refactoring the YoutubeSearch Model
 
 
-### Complete User Authorization
+### Refactor the Alert Model
 
-- Ensure that a user cannot modify another user's profile.
-
-Authorization means only allowing a user to do things in the application they
-should do.  In this assignment, you'll need to apply authentication to
-the profile editing to pass the tests.  Specifically, a user should not
-be able to retrieve/edit a profile that does not match the current user.
-
+* Remove the user_id column
+* Add a column called youtube_search_id as an integer type
+* Add a column called criterion as an integer type
+* Add a column called message as a string type
+* Modify the associations in the class definition to belong to
+  a youtube_search and have one user.  Be careful: the association
+  to a user is not a direct one.
 
 References:
-  - Hartl, Chapter 9, Section 9.2 Authorization
+  - Lecture Notes on Assignment 4, Refactoring the Alert Model
 
 
-## Assumptions Made by the Tests
+### Refactor the Video Model
 
-- The static pages setup from the prior assignment should still exist but
-only the about and help pages are tested.  I've replaced the notion of a home
-page with dashboard#index in this assignment.  The about page needs to have
-"My name is..." in it and the help page needs to have "email" in it.  You don't
-actually have to enter an email address on that page...my test only looks for the
-"email" string.
+* rename the youtube_search_id field to executed_search_id
+* define the belongs_to association (to an executed_search)
+  in the Video class definition.
 
-- There are other assumptions, e.g. that the login screen will include a form
-with fields for email and password, but these should be evident from the tests
-themselves.
+References:
+  - Lecture Notes on Assignment 4, Refactoring the Video Model
+
+
+### Install the Whenever Gem
+
+We'll use whenever to configure a cron job for running our automated searches.
+You'll need to install this in your Gemfile, bundle it, and update the configuration
+of the gem to run our searches every two hours.  See the lecture notes for details.
+
+References:
+  - [Whenever Gem](https://github.com/javan/whenever)
+  - [Lecture Notes on Assignment 4, Automating the Searching]
+
+
+--- 
+
+A note on the testing:  When you first run the tests (before doing all the refactoring listed above), you will get a slew of error messages.  Don’t freak out.  Most of these error messages occur because I’ve defined fixtures expecting the final state of the database, and the starting state isn’t the same…thus the fixtures reference attributes of models that don’t exist or have different names.

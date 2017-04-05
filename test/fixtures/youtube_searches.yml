@@ -20,3 +20,16 @@ farmall_tractors:
   name: Farmall Tractor Videos
   search_terms: farmall tractors
   user: michael
+  alert_on_new_result: true
+
+vampires:
+  name: Vampire Videos
+  search_terms: vampires
+  user: michael
+  alert_on_new_result: true
+
+learning_rails:
+  name: Learning Rails Videos
+  search_terms: ruby on rails
+  user: victor
+  alert_on_new_result: false

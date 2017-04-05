@@ -1,6 +1,6 @@
 <div class="nice-box">
   <div class="row">
-    <div class="header">Your Saved Searches
+    <div class="header">Your Searches
       <%= link_to 'New', new_youtube_search_path, class: 'btn btn-default pull-right' %>
     </div>
   </div>
@@ -8,8 +8,8 @@
       <table class="table">
         <% current_user.youtube_searches.most_recent(10).each do |search| %>
           <tr>
-            <td><%= search.name %></td>
-            <td><%= search.created_at %></td>
+            <td><%= alert_glyph(search) %></td>
+            <td><%= link_to search.name, edit_youtube_search_path(search) %></td>
           </tr>
         <% end %>
       </table>

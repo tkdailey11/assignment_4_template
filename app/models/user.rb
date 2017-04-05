@@ -10,7 +10,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  txt_number      :string
-#  verified        :boolean          default("f")
+#  verified        :boolean          default(FALSE)
 #  password_digest :string
 #
 # Indexes
@@ -21,6 +21,7 @@
 class User < ApplicationRecord
   has_many :alerts
   has_many :youtube_searches
+  has_many :executed_searches, through: :youtube_searches
 
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
 
@@ -29,9 +30,7 @@ class User < ApplicationRecord
   validates :email, presence: true, length: { maximum: 255 },
                     format: { with: VALID_EMAIL_REGEX },
                     uniqueness: { case_sensitive: false }
-
-  validates :password, presence: true, length: { minimum: 6 }, on: :create 
-
+  validates :password, presence: true, length: { minimum: 6 }, if: proc { |user| user.new_record? }
 
   before_save { email.downcase! }
 

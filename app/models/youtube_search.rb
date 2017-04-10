@@ -22,7 +22,8 @@ class YoutubeSearch < ApplicationRecord
   scope :most_recent, ->(n) { order('youtube_searches.created_at desc').limit(n) }
 
   # TODO:  Add a named scope here to return the youtube_search objects that
-  # have their alert_on_new_result attribute == true
+  # have their alert_on_new_result attribute == true.  The scope needs to
+  # be named 'with_alerting' (see self.run_batch! to see it getting called).
 
   validates :search_terms, presence: true
 
@@ -30,6 +31,10 @@ class YoutubeSearch < ApplicationRecord
 
   before_save :set_defaults
 
+  # The following function is a class method, not an object method, i.e. it's
+  # defined on the class itself instead of a specific YoutubeSearch object.
+  # You call class methods on the class itself, e.g.:
+  #    YoutubeSearch.run_batch! 
   def self.run_batch!
     YoutubeSearch.with_alerting.each do |search|
       search.execute!(false)  # false means this is not an ad hoc query

@@ -48,6 +48,7 @@ class ExecutedSearchTest < ActiveSupport::TestCase
   end
 
   test 'compare_to handles two distinct sets of videos' do
+    # fixture setup has set_a and set_b completely different
     search_a = executed_searches(:set_a)
     search_b = executed_searches(:set_b)
     delta = search_a.compare_to(search_b)
@@ -56,6 +57,7 @@ class ExecutedSearchTest < ActiveSupport::TestCase
   end
 
   test 'compare_to handles two identical sets of videos' do
+    # set_b made to be a copy of set_a so they are the same
     search_a = executed_searches(:set_a)
     search_b = executed_searches(:set_a)
     delta = search_a.compare_to(search_b)
@@ -63,16 +65,22 @@ class ExecutedSearchTest < ActiveSupport::TestCase
   end
 
   test 'compare_to handles intersecting sets of videos' do
+    # fixture setup has set_a and set_b completely different
     search_a = executed_searches(:set_a)
     search_b = executed_searches(:set_b)
     orig_set_a_size = search_a.videos.count
     orig_set_b_size = search_b.videos.count
 
-    # need to create a copy of a video in both sets
+    # now create a copy of a video in both sets
     v = search_b.videos.first
     v2 = Video.create(v.attributes.except('executed_search_id', 'id'))
     search_a.videos << v2
-    
+
+    # now there is one video in comment to both sets, e.g.:
+    #  search_a : {a, b, c, d}
+    #  search_b : {d, e, f}
+    # so...
+    #  search_a.compare_to(search_b) => { a, b, c}
     delta = search_a.compare_to(search_b)
 
     # size of the delta should still be the original search_a set size
@@ -81,6 +89,7 @@ class ExecutedSearchTest < ActiveSupport::TestCase
     assert search_a.videos.count == (orig_set_a_size + 1)
 
     # now flip the comparison around
+    #  search_b.compare_to(search_a) => {e, f}
     delta = search_b.compare_to(search_a)
 
     # size of the delta should the original search_b set size - 1
@@ -88,7 +97,6 @@ class ExecutedSearchTest < ActiveSupport::TestCase
     assert delta.count == orig_set_b_size - 1
     # but the overall set size should NOT have grown by one
     assert search_b.videos.count == orig_set_b_size
-
   end
 
 end

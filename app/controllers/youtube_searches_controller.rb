@@ -32,6 +32,6 @@ class YoutubeSearchesController < ApplicationController
   # whitelist parameters coming from form posts to ensure
   # security
   def safe_params
-    params.require(:youtube_search).permit(:search_terms)
+    params.require(:youtube_search).permit(:search_terms, :alert_on_new_result)
   end
 end

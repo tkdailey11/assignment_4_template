@@ -23,7 +23,6 @@ class ExecutedSearchTest < ActiveSupport::TestCase
     es.youtube_search_id = @yts.id
     assert es.save
     refute es.triggered_by.nil?
-    refute es.checked_for_alerts.nil?
   end
 
   test 'virtual attribute assignment works' do
